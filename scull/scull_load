@@ -1,0 +1,28 @@
+#! /bin/sh
+module="scull"
+device="scull"
+mode="664"
+number_devices=4
+
+# call insmod with all the arguments we have recieved.
+/sbin/insmod ./$module.ko $* || exit 1
+
+# remove stale nodes
+rm -f /dev/${device}[0-`expr $number_devices - 1`]
+
+major=$(awk "\\$2==\"$module\" {print \\$1}" /proc/devices)
+
+# create requisite number of devices
+device_number=0
+while [ "$device_number" -lt "$number_devices" ]
+do
+	mknod /dev/${device}$device_number c $major $device_number
+	device_number=`expr $device_number + 1`
+done
+
+# Set group to staff or wheel, depending on system usage
+group="staff"
+grep '^staff:' /etc/group || group="wheel"
+
+chgrp $group /dev/${device}[0-3]
+chmod $mode /dev/${device}[0-3]

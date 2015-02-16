@@ -1,0 +1,10 @@
+#! /bin/sh
+module="scull"
+device="scull"
+number_devices=4
+
+# remove module
+/sbin/rmmod $module $* || exit 1
+
+# remove nodes
+rm -f /dev/${device}[0-`expr $number_devices - 1`]
